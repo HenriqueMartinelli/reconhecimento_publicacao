@@ -1,50 +1,52 @@
 from flask import Flask, request
 import uuid
-from main import PublicacaoClient
-
+from main import PublicacaoClient, MainClientException
+import chardet
 app = Flask(__name__)
-
-#clients = {}
-# clients = SharedMemoryDict(name='clients', size=1024)
 client = PublicacaoClient()
-
-
 
 @app.route('/buscatermos', methods=['POST'])
 def buscar():
     try:
         content = get_content(["publicacao"])
-        resultado = client.busca_termos(content["publicacao"])
+        publicacao = client.decode_text(content['publicacao'])
+        resultado = client.busca_termos(publicacao=publicacao)
         if resultado:
-            dados = client.getattribute(content["publicacao"])
-            return {
-                    "sucesso" : True,
-                    "key" : resultado,
-                    "autor": dados.get('autor'),
-                    "juiz": dados.get('relator/juiz'),
-                    "adv autor": dados.get('adv autor'),
-                    'reu': dados.get('reu'),
-                    "adv reu": dados.get('adv reu'),
-                    'comarca/jurisdição': dados.get('comarca/jurisdição')
-                }    
-        
+            dados = client.extrair_atributos(text=publicacao)
+            if type(dados) is dict: 
+                return {
+                        "sucesso" : True,
+                        "key" : resultado,
+                        "processo": dados.get('processo'),
+                        "autor": dados.get('autor'),
+                        "advogados autor": dados.get('advogados_autor'),
+                        'reu': dados.get('reu'),
+                        "advogado reu": dados.get('advogados_reu'),
+                        'comarca/jurisdição': dados.get('comarca')
+                    }    
+
+            else:
+                return {
+                        "sucesso" : True,
+                        "key" : resultado,
+                        "msg": 'Não foi possivel extrair os dados' 
+                        }
+
         return {
             "sucesso" : False,
             "key": "Não encontrada",
         }    
-    # except DetranClientException as e:
-    #     return error(e.args[0])
-    except Exception as e: 
-        print(e)
+    except MainClientException as e:
+        return error(e.args[0])
     except:
         return error() 
+        
 
 @app.route('/update', methods=['POST'])
 def atualizar():
-    # try:
-        # content = get_content(["token"])
+    try:
         content = get_content(["key", "value", "publicacao"])
-        publicacao, value = decode_payload(content['publicacao']), decode_payload(content["value"])
+        publicacao, value = client.decode_text(content["publicacao"]), client.decode_text(content["value"])
         resultado = client.update_json(key=content["key"], value=value, publicacao=publicacao)
         if type(resultado) is int:
             return {
@@ -58,38 +60,42 @@ def atualizar():
         return {
                 "sucesso" : False,
                 "key": content["key"],
-                "value": content["value"],
+                "value": value,
                 "msg": resultado
             }  
 
 
-        # client = get_client(content)
-        # clients = SharedMemoryDict(name='clients', size=1024)
-        # del clients[content["token"]]
-    #     return ok()
-    # except DetranClientException as e:
-    #     return error(e.args[0])
-    # except Exception as e: 
-    #     print(e)
-    # except:
-    #     return error() 
+    except MainClientException as e:
+        return error(e.args[0])
+    except:
+        return error() 
+
 
 @app.route('/testar', methods=['POST'])
 def testar():
     try:
-        content = get_content(["key"])
-        resultado = client.teste_novoTermo(content["key"])
+        content = get_content(['key'])
+        resultado = client.teste_novoTermo(key=content["key"])
+
         return {
             "key": content["key"],
             "ocorrencias encontradas": resultado
         }  
-    # except DetranClientException as e:
-    #     return error(e.args[0])
-    except Exception as e: 
-        print(e)
+    except MainClientException as e:
+        return error(e.args[0])
     except:
         return error() 
 
+
+@app.route('/testartotal/', methods=['GET'])
+def testar_total():
+    try:
+        resultado = client.testar_total()
+        return resultado 
+    except MainClientException as e:
+        return error(e.args[0])
+    except:
+        return error() 
         
 ###################################################################
 #   Utils
@@ -97,29 +103,24 @@ def testar():
 
 
 def get_content(required_fields):
-    content = request.form
+    content = request.json
     validate_content(content, required_fields)
     return content
 
 def validate_content(content, required_fields):
     for field in required_fields:
         if field not in content:
-            print("Requisição inválida.")
+            raise MainClientException("Requisição inválida.")
 
 def error(msg="Erro desconhecido ao processar requisição."):
     return {
         "sucesso" : False,
         "msg": msg
     }
-
-def decode_payload(content):
-    str_bytes = bytes(content,'UTF-8')
-    str_bytes = str_bytes.decode('unicode_escape').encode('raw_unicode_escape')
-    return str_bytes.decode()
             
 
 def invalid_request():
-    return error("Requisição inválida.")
+    return error(msg="Requisição inválida.")
 
 def ok():
     return {
