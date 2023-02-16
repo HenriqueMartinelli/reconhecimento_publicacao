@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Checar padrões de decisões</title>
+  <script>
+    // Define function to make API request and populate option input
+    function populateOptions() {
+      // Get the option input element
+      var select = document.getElementById("mySelect");
+      // Get the textbox element
+      var textbox = document.getElementById("myTextbox");
+
+      // Make a request to the API
+      fetch('/keys')
+        .then(response => response.json())
+        .then(data => {
+          // Loop through the data and create option elements for each value
+          for (var i = 0; i < data.length; i++) {
+            var option = document.createElement("option");
+            option.text = data[i];
+            option.value = i;
+            select.add(option);
+          }
+        })
+        .catch(error => {
+          console.error('Error:', error);
+        });
+
+      // Add event listener to option input to make new API request when option is changed
+      select.addEventListener('change', function () {
+        // Get the selected option value
+        var selectedOption = select.options[select.selectedIndex].text;
+
+        // Make a new request to the API with the selected option value
+        fetch('/get_value/' + selectedOption)
+          .then(response => response.json())
+          .then(data => {
+            // Set the textbox value to the details returned by the API
+            textbox.value = data['value'];//.details//.split('|');
+          })
+          .catch(error => {
+            console.error('Error:', error);
+          });
+      });
+    }
+  </script>
+</head>
+<body onload="populateOptions()">
+  <label for="mySelect">Selecione a chave de pesquisa:</label>
+  <select id="mySelect"></select>
+  <br>
+  <label for="myTextbox">Padrões buscados:</label>
+  <input type="text" id="myTextbox">
+</body>
+</html>

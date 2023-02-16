@@ -1,9 +1,15 @@
-from flask import Flask, request
-import uuid
+from flask import Flask, request, jsonify, render_template
+import uuid, json
 from main import PublicacaoClient, MainClientException
 import chardet
+from unidecode import unidecode
+
 app = Flask(__name__)
 client = PublicacaoClient()
+
+@app.route('/', methods=['GET'])
+def home():
+  return render_template('pagina.html')
 
 @app.route('/buscatermos', methods=['POST'])
 def buscar():
@@ -96,7 +102,33 @@ def testar_total():
         return error(e.args[0])
     except:
         return error() 
-        
+
+
+@app.route('/keys', methods=['GET'])
+def chaves():
+  with open('utils/termos.json') as f:
+    termos = json.load(f)
+  chaves = [t.encode('UTF-8').decode() for t in termos.keys()]
+  return sorted(chaves)
+
+@app.route('/get_value/<key>', methods=['GET'])
+def value(key):
+  with open('utils/termos.json') as f:
+    termos = json.load(f)
+  value = termos.get(key)
+  if value:
+      return {'value': client.decode_text(value.encode('UTF-8').decode()).upper()}
+  else:
+      return jsonify({'error': 'Chave não encontrada'}), 404
+
+@app.route('/teste', methods=['POST'])
+def cadastrar_chaves():
+  content = request.json
+  print(content)
+  content['teste'] = content['teste'].replace('(...)','.+')
+  print(content)
+  return {'é um teste': 'testando 123'}
+
 ###################################################################
 #   Utils
 ###################################################################

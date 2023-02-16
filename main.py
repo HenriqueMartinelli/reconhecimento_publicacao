@@ -93,9 +93,9 @@ class PublicacaoClient:
 
     ## CARREGA JSON COM O TERMOS JÁ SALVOS
     def load_termos(self, arquivo):
-        f = open(arquivo + ".json")
+      with open(arquivo + ".json") as f:  
         termos = json.load(f)
-        return termos
+      return termos
 
 
     def save_json(self, dict):
