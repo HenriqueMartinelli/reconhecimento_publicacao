@@ -48,7 +48,7 @@
     }
 
     function createPubBox() {
-      const container = document.getElementById("input-container");
+      const container = document.getElementById("cadastrar");
       const textbox = document.createElement("input");
       textbox.type = 'text';
       textbox.size = 85;
@@ -59,7 +59,7 @@
     }
 
     function createButton() {
-      container = document.getElementById("input-container")
+      container = document.getElementById("cadastrar")
       const button = document.createElement("button");
       button.textContent = 'Cadastrar Chave';
       button.id = 'cadastrar-chave-button'
@@ -68,7 +68,7 @@
     }
 
     function createNewKey() {
-      const container = document.getElementById("input-container");
+      const container = document.getElementById("cadastrar");
       const inputbox = document.createElement("input");
       inputbox.type = 'text';
       inputbox.size = 40
@@ -90,7 +90,7 @@
         const data = {
           key: key,
           value: lastBox.value,
-          publicacao: pub 
+          publicacao: pub
         };
         const options = {
           method: "POST",
@@ -126,6 +126,7 @@
 
       const inserirKeyButton = document.getElementById("nova-chave-button");
       inserirKeyButton.addEventListener("click", () => {
+        container.innerHTML = "<p>Padrões buscados:</p>";
         createNewKey();
         testar.disabled = false
       });
@@ -201,6 +202,7 @@
       // Add event listener to option input to make new API request when option is changed
       select.addEventListener('change', function () {
         // Get the selected option value
+        document.getElementById('cadastrar').innerHTML = ""
         var selectedOption = select.options[select.selectedIndex].text;
 
         // Make a new request to the API with the selected option value
@@ -239,7 +241,7 @@
 <body onload="populateOptions()" display="grid">
   <div class="container">
     <div class='column-left' id="input-container">
-      <label for="mySelect">Selecione a chave de pesquisa:</label>
+      <p for="mySelect">Selecione a chave de pesquisa:</p>
       <select id="mySelect"></select>
       <br />
       <br />
@@ -247,6 +249,7 @@
       <button id="novo-padrao-button">Inserir Novo Padrão</button>
       <button id="testar-button">Testar</button>
       <button id="atualizar-button">Atualizar</button>
+      <div id="cadastrar"></div>
     </div>
     <div class="column-right" id="textbox-container">
       <p>Padrões buscados:</p>
