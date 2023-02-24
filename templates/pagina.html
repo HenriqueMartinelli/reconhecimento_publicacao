@@ -26,6 +26,10 @@
     clear: both;
     display: flex;
   }
+
+  input {
+    size: 85;
+  }
 </style>
 <head>
   <title>Checar padrões de decisões</title>
@@ -36,10 +40,73 @@
     function createNewTextbox() {
       const container = document.getElementById("textbox-container");
       const textbox = document.createElement("input");
-      textbox.type = 'text'
-      textbox.placeholder = 'Preencha aqui o padrão desejado...'
+      textbox.type = 'text';
+      textbox.size = 85;
+      textbox.placeholder = 'Preencha aqui o padrão desejado...';
       container.appendChild(textbox);
       container.appendChild(document.createElement("br"));
+    }
+
+    function createPubBox() {
+      const container = document.getElementById("input-container");
+      const textbox = document.createElement("input");
+      textbox.type = 'text';
+      textbox.size = 85;
+      textbox.id = 'pub-box'
+      textbox.placeholder = 'Preencha aqui a publicação para testar a chave...';
+      container.appendChild(textbox);
+      container.appendChild(document.createElement("br"));
+    }
+
+    function createButton() {
+      container = document.getElementById("input-container")
+      const button = document.createElement("button");
+      button.textContent = 'Cadastrar Chave';
+      button.id = 'cadastrar-chave-button'
+      container.appendChild(button);
+      return button;
+    }
+
+    function createNewKey() {
+      const container = document.getElementById("input-container");
+      const inputbox = document.createElement("input");
+      inputbox.type = 'text';
+      inputbox.size = 40
+      inputbox.placeholder = 'Preencha aqui o nome do novo padrão...';
+      container.appendChild(document.createElement("br"));
+      container.appendChild(document.createElement("br"));
+      container.appendChild(inputbox);
+      container.appendChild(document.createElement("br"));
+      createNewTextbox()
+      createPubBox()
+      createButton()
+      const cadastrarKeyButton = document.getElementById("cadastrar-chave-button");
+      cadastrarKeyButton.addEventListener("click", () => {
+        var select = document.getElementById("mySelect");
+        let boxes = document.querySelectorAll("#textbox-container > input[type=text]")
+        let key = inputbox.value
+        let pub = document.getElementById("pub-box").value;
+        lastBox = boxes[boxes.length - 1];
+        const data = {
+          key: key,
+          value: lastBox.value,
+          publicacao: pub 
+        };
+        const options = {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify(data)
+        };
+        fetch('/update', options)
+          .then(response => response.json())
+          .then(data => {
+            console.log(data)
+            alert('O item ' + lastBox.value + ' apresentou ' + data["ocorrencias encontradas"] + ' ocorrências')
+          }
+          );
+      });
     }
 
     function populateOptions() {
@@ -54,6 +121,12 @@
       const inserirNovoButton = document.getElementById("novo-padrao-button");
       inserirNovoButton.addEventListener("click", () => {
         createNewTextbox();
+        testar.disabled = false
+      });
+
+      const inserirKeyButton = document.getElementById("nova-chave-button");
+      inserirKeyButton.addEventListener("click", () => {
+        createNewKey();
         testar.disabled = false
       });
 
@@ -144,6 +217,7 @@
 
               // Set the type of the textbox to "text"
               textbox.type = "text";
+              textbox.size = 85;
 
               // Set the value of the textbox to the current string in the list
               textbox.value = strings[i];
@@ -169,6 +243,7 @@
       <select id="mySelect"></select>
       <br />
       <br />
+      <button id="nova-chave-button">Inserir Nova Chave</button>
       <button id="novo-padrao-button">Inserir Novo Padrão</button>
       <button id="testar-button">Testar</button>
       <button id="atualizar-button">Atualizar</button>

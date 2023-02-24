@@ -51,6 +51,7 @@ def buscar():
 def atualizar():
     try:
         content = get_content(["key", "value", "publicacao"])
+        print(content)
         publicacao, value = client.decode_text(content["publicacao"]), client.decode_text(content["value"])
         resultado = client.update_json(key=content["key"], value=value, publicacao=publicacao)
         if type(resultado) is int:
@@ -116,7 +117,7 @@ def value(key):
     termos = json.load(f)
   value = termos.get(key)
   if value:
-      return {'value': client.decode_text(value.encode('UTF-8').decode()).upper().replace("\\","")}
+      return {'value': client.decode_text(value.encode('UTF-8').decode()).upper().replace("\\","").replace('.+','(...)')}
   else:
       return jsonify({'error': 'Chave não encontrada'}), 404
 
