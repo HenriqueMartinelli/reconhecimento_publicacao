@@ -84,12 +84,17 @@
       cadastrarKeyButton.addEventListener("click", () => {
         var select = document.getElementById("mySelect");
         let boxes = document.querySelectorAll("#textbox-container > input[type=text]")
+        const textList = [];
+        boxes.forEach(function (element) {
+          textList.push(element.value);
+        });
+        textString = textList.join("|");
         let key = inputbox.value
         let pub = document.getElementById("pub-box").value;
         lastBox = boxes[boxes.length - 1];
         const data = {
           key: key,
-          value: lastBox.value,
+          value: textString,
           publicacao: pub
         };
         const options = {
@@ -103,7 +108,7 @@
           .then(response => response.json())
           .then(data => {
             console.log(data)
-            alert('O item ' + lastBox.value + ' apresentou ' + data["ocorrencias encontradas"] + ' ocorrências')
+            alert(data['msg'])
           }
           );
       });
@@ -180,8 +185,6 @@
           }
           );
       });
-
-
 
       // Make a request to the API
       fetch('/keys')
