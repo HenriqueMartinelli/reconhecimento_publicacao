@@ -60,7 +60,7 @@ class PublicacaoClient:
 
         df = self.publicacao_padrao()
         total = 0 
-        for index, row in df.iterrows():
+        for _, row in df.iterrows():
             resultado = self.busca_termos(publicacao=self.decode_text(row['teor']), termos=novoTermos)
             if resultado:
                 total += 1

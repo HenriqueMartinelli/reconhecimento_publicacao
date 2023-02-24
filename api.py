@@ -1,8 +1,7 @@
 from flask import Flask, request, jsonify, render_template
 import uuid, json
 from main import PublicacaoClient, MainClientException
-import chardet
-from unidecode import unidecode
+import re
 
 app = Flask(__name__)
 client = PublicacaoClient()
@@ -117,18 +116,65 @@ def value(key):
     termos = json.load(f)
   value = termos.get(key)
   if value:
-      return {'value': client.decode_text(value.encode('UTF-8').decode()).upper()}
+      return {'value': client.decode_text(value.encode('UTF-8').decode()).upper().replace("\\","")}
   else:
       return jsonify({'error': 'Chave não encontrada'}), 404
 
-@app.route('/teste', methods=['POST'])
-def cadastrar_chaves():
-  content = request.json
-  print(content)
-  content['teste'] = content['teste'].replace('(...)','.+')
-  print(content)
-  return {'é um teste': 'testando 123'}
+# @app.route('/teste', methods=['POST'])
+# def cadastrar_chaves():
+#   content = request.json
+#   texto = content['teste']
+#   print(texto)
+#   texto = re.escape(texto)
+#   texto = texto.replace('\\(\\.\\.\\.\\)','.+')
+#   print(texto)
+#   return {'é um teste': 'testando 123'}
 
+### tem que fazer um endpoint para teste de nova chave
+@app.route('/cadastrar_key', methods=['POST'])
+def cadastrar_nova_key():
+  try:
+    content = request.json
+    with open('utils/termos.json') as f:
+      termos = json.load(f)
+    key = content['key']
+    texto = content['value']
+    print(texto)
+    texto = re.escape(texto)
+    texto = texto.replace('\\(\\.\\.\\.\\)','.+')
+    print(texto)
+    termos[key] = termos[key]+'|'+texto
+    with open('utils/termos.json','w') as f:
+      json.dump(termos, f)
+    return {'status':'Ok',
+            'resultado': ' foi cadastrado'}
+  except:
+    return {'status':'Erro',
+            'resultado': ' não foi cadastrado'}
+
+
+
+@app.route('/teste', methods=['POST'])
+def teste():
+    try:
+        content = request.json
+        print(content)
+        new_dict = content
+        texto = content['key']
+        # content = get_content(['key'])
+        texto = re.escape(texto)
+        texto = texto.replace('\\(\\.\\.\\.\\)','.+')
+        new_dict['key'] = texto
+        resultado = client.teste_novoTermo(novoTermos=new_dict)
+        
+        return {
+            "key": content,
+            "ocorrencias encontradas": resultado
+        }  
+    except MainClientException as e:
+        return error(e.args[0])
+    except:
+        return error() 
 ###################################################################
 #   Utils
 ###################################################################
