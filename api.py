@@ -59,7 +59,7 @@ def atualizar():
                 "sucesso" : True,
                 "key": content["key"],
                 "value": value,
-                "msg": "Cadastrado",
+                "msg": f"Cadastrado. Ocorrencias encontradas: {resultado}",
                 "ocorrencias encontradas": resultado
             }  
 
