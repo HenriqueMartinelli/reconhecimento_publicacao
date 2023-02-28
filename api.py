@@ -49,18 +49,19 @@ def buscar():
 
 @app.route('/update', methods=['POST'])
 def atualizar():
-    try:
+    # try:
         content = get_content(["key", "value", "publicacao"])
         print(content)
         publicacao, value = client.decode_text(content["publicacao"]), client.decode_text(content["value"])
         resultado = client.update_json(key=content["key"], value=value, publicacao=publicacao)
-        if type(resultado) is int:
+        if type(resultado) is dict:
             return {
                 "sucesso" : True,
                 "key": content["key"],
                 "value": value,
-                "msg": f"Cadastrado. Ocorrencias encontradas: {resultado}",
-                "ocorrencias encontradas": resultado
+                "msg": f"Cadastrado. Ocorrencias encontradas: {resultado['total']}",
+                "ocorrencias encontradas": resultado['total'],
+                "publicacoes": resultado['publicacoes']
             }  
 
         return {
@@ -71,26 +72,26 @@ def atualizar():
             }  
 
 
-    except MainClientException as e:
-        return error(e.args[0])
-    except:
-        return error() 
+    # except MainClientException as e:
+    #     return error(e.args[0])
+    # except:
+    #     return error() 
 
 
-@app.route('/testar', methods=['POST'])
-def testar():
-    try:
-        content = get_content(['key'])
-        resultado = client.teste_novoTermo(key=content["key"])
+# @app.route('/testar', methods=['POST'])
+# def testar():
+#     try:
+#         content = get_content(['key'])
+#         resultado = client.teste_novoTermo(key=content["key"])
 
-        return {
-            "key": content["key"],
-            "ocorrencias encontradas": resultado
-        }  
-    except MainClientException as e:
-        return error(e.args[0])
-    except:
-        return error() 
+#         return {
+#             "key": content["key"],
+#             "ocorrencias encontradas": resultado
+#         }  
+#     except MainClientException as e:
+#         return error(e.args[0])
+#     except:
+#         return error() 
 
 
 @app.route('/testartotal/', methods=['GET'])
@@ -121,18 +122,8 @@ def value(key):
   else:
       return jsonify({'error': 'Chave não encontrada'}), 404
 
-# @app.route('/teste', methods=['POST'])
-# def cadastrar_chaves():
-#   content = request.json
-#   texto = content['teste']
-#   print(texto)
-#   texto = re.escape(texto)
-#   texto = texto.replace('\\(\\.\\.\\.\\)','.+')
-#   print(texto)
-#   return {'é um teste': 'testando 123'}
-
 ### tem que fazer um endpoint para teste de nova chave
-@app.route('/cadastrar_key', methods=['POST'])
+@app.route('/cadastrar_value', methods=['POST'])
 def cadastrar_nova_key():
   try:
     content = request.json
@@ -170,7 +161,9 @@ def teste():
         
         return {
             "key": content,
-            "ocorrencias encontradas": resultado
+            # "ocorrencias encontradas": resultado,
+            "ocorrencias encontradas": resultado['total'],
+            "publicacoes": resultado['publicacoes']
         }  
     except MainClientException as e:
         return error(e.args[0])

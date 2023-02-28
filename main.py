@@ -34,7 +34,7 @@ class PublicacaoClient:
         resultado = self.teste_novoTermo(novoTermos=novoTermo)
         self.termosPadrao.update(novoTermo)
 
-        if resultado > 10:
+        if resultado['total'] > 10:
             self.save_json(self.termosPadrao)
         return resultado
 
@@ -59,13 +59,19 @@ class PublicacaoClient:
             novoTermos = {key: self.termosPadrao.get(key)}
 
         df = self.publicacao_padrao()
-        total = 0 
+        total = 0
+        result_publicacao = list()
         for _, row in df.iterrows():
             resultado = self.busca_termos(publicacao=self.decode_text(row['teor']), termos=novoTermos)
             if resultado:
                 total += 1
-   
-        return total
+                if len(result_publicacao) < 20:
+                    result_publicacao.append(row['teor'])
+
+        return {
+            "total": total,
+            "publicacoes": result_publicacao
+        }
 
     ## TESTA TODOS OS TERMOS JÁ CADASTRADOS COM O BANCO DE TESTE EXCEL
     def testar_total(self):

@@ -12,6 +12,7 @@
   }
 */
 
+
   .column-left {
     flex: 50%;
   }
@@ -27,6 +28,19 @@
     display: flex;
   }
 
+  .exemplos {
+    flex: 100%;
+  }
+
+  .exemplo {
+    align-items: center;
+    align-self: center;
+    justify-content: center;
+    text-align: center;
+  }
+
+
+
   input {
     size: 85;
   }
@@ -36,6 +50,19 @@
   <script>
 
     // Define function to make API request and populate option input
+    function textAreaAdjust(element) {
+      element.style.width = '90%';
+      element.style.height = "1px";
+      element.style.height = (25 + element.scrollHeight) + "px";
+      element.style.margin = "0 auto"
+    }
+
+    function clearScreen() {
+      const exemplos = document.getElementById("exemplos")
+      exemplos.innerHTML = ''
+      const testar = document.querySelector("#testar-button")
+      testar.disabled = true
+    }
 
     function createNewTextbox() {
       const container = document.getElementById("textbox-container");
@@ -46,6 +73,19 @@
       container.appendChild(textbox);
       container.appendChild(document.createElement("br"));
     }
+
+    function createExampleBox() {
+      const container = document.getElementById("exemplos");
+      const textarea = document.createElement("textarea");
+      textarea.type = 'text';
+      textarea.id = 'publicacao'
+      textarea.class = 'exemplo'
+      container.appendChild(document.createElement("br"));
+      container.appendChild(textarea);
+      container.appendChild(document.createElement("br"));
+      return textarea
+    }
+
 
     function createPubBox() {
       const container = document.getElementById("cadastrar");
@@ -59,7 +99,7 @@
     }
 
     function createButton() {
-      container = document.getElementById("cadastrar")
+      container = document.getElementById("cadastrar");
       const button = document.createElement("button");
       button.textContent = 'Cadastrar Chave';
       button.id = 'cadastrar-chave-button'
@@ -109,6 +149,21 @@
           .then(data => {
             console.log(data)
             alert(data['msg'])
+            pubs = data['publicacoes']
+            clearScreen()
+
+            const container = document.getElementById("exemplos");
+            container.appendChild(document.createElement("br"));
+            const exemplos = document.createElement("h3");
+            exemplos.innerHTML = 'Publicações encontradas:';
+            container.appendChild(exemplos)
+
+            for (var i = 0; i < pubs.length; i++) {
+              var option = document.createElement("option");
+              box = createExampleBox()
+              box.value = pubs[i];
+              textAreaAdjust(box)
+            }
           }
           );
       });
@@ -125,13 +180,15 @@
 
       const inserirNovoButton = document.getElementById("novo-padrao-button");
       inserirNovoButton.addEventListener("click", () => {
+        clearScreen()
         createNewTextbox();
         testar.disabled = false
       });
 
       const inserirKeyButton = document.getElementById("nova-chave-button");
       inserirKeyButton.addEventListener("click", () => {
-        container.innerHTML = "<p>Padrões buscados:</p>";
+        clearScreen()
+        container.innerHTML = "<h4>Padrões buscados:</h4>";
         createNewKey();
         testar.disabled = false
       });
@@ -156,12 +213,28 @@
           .then(data => {
             console.log(data)
             alert('O item ' + lastBox.value + ' apresentou ' + data["ocorrencias encontradas"] + ' ocorrências')
+            pubs = data['publicacoes']
+            clearScreen()
+
+            const container = document.getElementById("exemplos");
+            container.appendChild(document.createElement("br"));
+            const exemplos = document.createElement("h3");
+            exemplos.innerHTML = 'Publicações encontradas:';
+            container.appendChild(exemplos)
+
+            for (var i = 0; i < pubs.length; i++) {
+              var option = document.createElement("option");
+              box = createExampleBox()
+              box.value = pubs[i];
+              textAreaAdjust(box)
+            }
           }
           );
       });
 
       const atualizarButton = document.getElementById("atualizar-button");
       atualizarButton.addEventListener("click", () => {
+        clearScreen()
         var select = document.getElementById("mySelect");
         let boxes = document.querySelectorAll("#textbox-container > input[type=text]")
         let key = select.options[select.selectedIndex].text
@@ -177,7 +250,7 @@
           },
           body: JSON.stringify(data)
         };
-        fetch('/cadastrar_key', options)
+        fetch('/cadastrar_value', options)
           .then(response => response.json())
           .then(data => {
             console.log(data)
@@ -206,6 +279,7 @@
       select.addEventListener('change', function () {
         // Get the selected option value
         document.getElementById('cadastrar').innerHTML = ""
+        clearScreen()
         var selectedOption = select.options[select.selectedIndex].text;
 
         // Make a new request to the API with the selected option value
@@ -213,7 +287,7 @@
           .then(response => response.json())
           .then(text => {
             console.log(text)
-            container.innerHTML = "<p>Padrões buscados:</p>";
+            container.innerHTML = "<h4>Padrões buscados:</h4>";
             let strings = text['value'].split('|');
             // Loop through each string in the list
             for (let i = 0; i < strings.length; i++) {
@@ -244,7 +318,7 @@
 <body onload="populateOptions()" display="grid">
   <div class="container">
     <div class='column-left' id="input-container">
-      <p for="mySelect">Selecione a chave de pesquisa:</p>
+      <h4 for="mySelect">Selecione a chave de pesquisa:</h4>
       <select id="mySelect"></select>
       <br />
       <br />
@@ -255,9 +329,10 @@
       <div id="cadastrar"></div>
     </div>
     <div class="column-right" id="textbox-container">
-      <p>Padrões buscados:</p>
+      <h4>Padrões buscados:</h4>
 
     </div>
   </div>
+  <div id='exemplos' class="exemplos"></div>
 </body>
 </html>
